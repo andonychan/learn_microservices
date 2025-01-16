@@ -43,6 +43,9 @@ func main() {
 	l.Println("shutting down", sig)
 
 	tc, _ := context.WithTimeout(context.Background(), 30*time.Second)
-	s.Shutdown(tc)
+	err := s.Shutdown(tc)
+	if err != nil {
+		l.Fatal(err)
+	}
 
 }
