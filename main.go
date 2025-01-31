@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/gorilla/mux"
 	"intro/handlers"
 	"log"
 	"net/http"
@@ -12,11 +13,22 @@ import (
 
 func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
+
 	ph := handlers.NewProducts(l)
 
-	sm := http.NewServeMux()
+	sm := mux.NewRouter()
 
-	sm.Handle("/", ph)
+	getRouter := sm.Methods(http.MethodGet).Subrouter()
+	putRouter := sm.Methods(http.MethodPut).Subrouter()
+	postRouter := sm.Methods(http.MethodPost).Subrouter()
+	//deleteRouter := sm.Methods("DELETE").Subrouter()
+
+	getRouter.HandleFunc("/", ph.GetProducts)
+	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProduct)
+	postRouter.HandleFunc("/", ph.AddProduct)
+
+	putRouter.Use(ph.MiddlewareProductValidation, ph.MiddlewareProductIDValidation)
+	postRouter.Use(ph.MiddlewareProductValidation)
 
 	s := &http.Server{
 		Addr:         ":9090",
